@@ -1,30 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
 import { expect, test } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const canRun = email && password && supabaseUrl && serviceRoleKey;
+import { E2E_EMAIL, E2E_READY, loginE2E } from './helpers/auth';
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email!);
-  await page.getByLabel('Senha').fill(password!);
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-(canRun ? test : test.skip)(
+
+(E2E_READY ? test : test.skip)(
   'seed N corridas com análise → /calibracao mostra stats → aplica calibração manual',
   async ({ page }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
     // Descobre user_id e parametros_id ativos
     const { data: userResp } = await admin.auth.admin.listUsers();
-    const user = userResp.users.find((u) => u.email === email);
+    const user = userResp.users.find((u) => u.email === E2E_EMAIL);
     expect(user).toBeDefined();
     const userId = user!.id;
 
@@ -96,7 +88,7 @@ async function login(page: import('@playwright/test').Page) {
     expect(insErr).toBeNull();
 
     try {
-      await login(page);
+      await loginE2E(page);
       await page.goto('/calibracao');
 
       // Resumo mostra 10 corridas analisadas

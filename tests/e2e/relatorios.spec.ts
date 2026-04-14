@@ -1,21 +1,15 @@
 import { expect, test } from '@playwright/test';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const canRun = email && password;
+import { E2E_READY, loginE2E } from './helpers/auth';
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email!);
-  await page.getByLabel('Senha').fill(password!);
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-(canRun ? test : test.skip)(
+
+(E2E_READY ? test : test.skip)(
   'abre /relatorios com filtros default e renderiza dashboard',
   async ({ page }) => {
-    await login(page);
+    await loginE2E(page);
     await page.goto('/relatorios');
     // Header visível
     await expect(page.getByRole('heading', { name: 'Relatórios' })).toBeVisible();
@@ -26,10 +20,10 @@ async function login(page: import('@playwright/test').Page) {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'export CSV baixa arquivo válido',
   async ({ page }) => {
-    await login(page);
+    await loginE2E(page);
     await page.goto('/relatorios');
 
     const hasData = await page.getByTestId('export-csv').isEnabled();
@@ -43,10 +37,10 @@ async function login(page: import('@playwright/test').Page) {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'export Excel dispara download do endpoint /api/export',
   async ({ page, request }) => {
-    await login(page);
+    await loginE2E(page);
     await page.goto('/relatorios');
 
     // Pega o href do link de Excel e bate direto via request (já autenticado via cookies da page)
@@ -65,10 +59,10 @@ async function login(page: import('@playwright/test').Page) {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'export PDF dispara download do endpoint /api/export',
   async ({ page, request }) => {
-    await login(page);
+    await loginE2E(page);
     await page.goto('/relatorios');
 
     const href = await page.getByTestId('export-pdf').getAttribute('href');

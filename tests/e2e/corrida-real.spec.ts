@@ -1,19 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test } from '@playwright/test';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const canRun = email && password && supabaseUrl && serviceRoleKey;
+import { E2E_READY, loginE2E } from './helpers/auth';
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email!);
-  await page.getByLabel('Senha').fill(password!);
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 function ts() {
   const d = new Date();
@@ -21,16 +12,16 @@ function ts() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'criar corrida real avulsa → registrar análise química → desvios aparecem',
   async ({ page }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
     const nome = `Corrida_${Date.now()}`;
 
-    await login(page);
+    await loginE2E(page);
     await page.goto('/corridas/nova');
     await page.getByLabel('Nome').fill(nome);
     // Já começa com tipo=corrida_real (default da page)
@@ -69,10 +60,10 @@ function ts() {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'corrida real com simulação de origem vincula via /corridas/nova?origem=<id>',
   async ({ page, request }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     void request;
@@ -80,7 +71,7 @@ function ts() {
     const nomeSim = `OrigemSim_${Date.now()}`;
     const nomeCor = `Corrida_${Date.now()}`;
 
-    await login(page);
+    await loginE2E(page);
 
     // Cria uma simulação
     await page.goto('/laminas/nova');
@@ -116,16 +107,16 @@ function ts() {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'corrida real SEM simulação de origem mostra placeholder',
   async ({ page }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
     const nome = `CorridaSemOrigem_${Date.now()}`;
 
-    await login(page);
+    await loginE2E(page);
     await page.goto('/corridas/nova');
     await page.getByLabel('Nome').fill(nome);
     await page.getByLabel('Data/hora da corrida').fill(ts());

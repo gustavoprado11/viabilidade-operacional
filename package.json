@@ -51,6 +51,8 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "15.1.12",
+    "lighthouse": "^13.1.0",
+    "playwright-lighthouse": "^4.0.0",
     "postcss": "^8",
     "prettier": "^3.4.0",
     "prettier-plugin-tailwindcss": "^0.6.9",

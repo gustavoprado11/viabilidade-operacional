@@ -1,22 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const canRun = email && password;
+import { E2E_READY, loginE2E } from './helpers/auth';
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email!);
-  await page.getByLabel('Senha').fill(password!);
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-(canRun ? test : test.skip)(
+
+(E2E_READY ? test : test.skip)(
   'otimizador termina em <30s e renderiza UI (stats ou sem-resultados)',
   async ({ page }) => {
     test.setTimeout(60_000);
-    await login(page);
+    await loginE2E(page);
     await page.goto('/otimizador');
 
     // Com os 3 minérios itabiríticos seed + parâmetros bootstrap
@@ -50,10 +44,10 @@ async function login(page: import('@playwright/test').Page) {
   },
 );
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'restrições impossíveis mostram "nenhuma combinação"',
   async ({ page }) => {
-    await login(page);
+    await loginE2E(page);
     await page.goto('/otimizador');
 
     // Al2O3 escória máx 1% é fisicamente impossível com minérios itabiríticos

@@ -1,19 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test } from '@playwright/test';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const canRun = email && password && supabaseUrl && serviceRoleKey;
+import { E2E_READY, loginE2E } from './helpers/auth';
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/login');
-  await page.getByLabel('E-mail').fill(email!);
-  await page.getByLabel('Senha').fill(password!);
-  await page.getByRole('button', { name: 'Entrar' }).click();
-  await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 async function criarSimulacao(page: import('@playwright/test').Page, nome: string) {
   await page.goto('/laminas/nova');
@@ -23,17 +14,17 @@ async function criarSimulacao(page: import('@playwright/test').Page, nome: strin
   await page.waitForURL(/\/laminas\/[0-9a-f-]+$/, { timeout: 15_000 });
 }
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'selecionar 2 lâminas → comparativo → exportar CSV → remover 1',
   async ({ page }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
     const nomeA = `CmpA_${Date.now()}`;
     const nomeB = `CmpB_${Date.now()}`;
 
-    await login(page);
+    await loginE2E(page);
     await criarSimulacao(page, nomeA);
     await criarSimulacao(page, nomeB);
 

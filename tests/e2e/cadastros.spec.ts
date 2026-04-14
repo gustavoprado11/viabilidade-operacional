@@ -9,28 +9,21 @@
 import { createClient } from '@supabase/supabase-js';
 import { expect, test } from '@playwright/test';
 
-const email = process.env.E2E_TEST_EMAIL;
-const password = process.env.E2E_TEST_PASSWORD;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { E2E_READY, loginE2E } from './helpers/auth';
 
-const canRun = email && password && supabaseUrl && serviceRoleKey;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-(canRun ? test : test.skip)(
+(E2E_READY ? test : test.skip)(
   'criar → editar → excluir minério com versionamento',
   async ({ page }) => {
-    const admin = createClient(supabaseUrl!, serviceRoleKey!, {
+    const admin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
     const nome = `Teste_${Date.now()}`;
 
-    // login
-    await page.goto('/login');
-    await page.getByLabel('E-mail').fill(email!);
-    await page.getByLabel('Senha').fill(password!);
-    await page.getByRole('button', { name: 'Entrar' }).click();
-    await page.waitForURL('http://localhost:3000/', { timeout: 15_000 });
+    await loginE2E(page);
 
     // criar
     await page.goto('/cadastros/minerios/novo');

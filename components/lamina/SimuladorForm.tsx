@@ -484,6 +484,12 @@ export function SimuladorForm(props: Props) {
           </CardContent>
         </Card>
 
+        {/*
+          TODO v1.1: PRD pediu botões distintos "Salvar simulação" e
+          "Salvar como corrida real". Fluxo atual (radio "Tipo" acima +
+          botão único) é funcional e validado por E2E. Adiar para v1.1
+          junto com decisão de UX mais ampla.
+        */}
         <div className="flex gap-2">
           <Button type="submit" disabled={pending || !somaOK} data-testid="submit">
             {pending ? 'Salvando…' : submitLabel}
