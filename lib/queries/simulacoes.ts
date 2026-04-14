@@ -26,6 +26,18 @@ export async function listSimulacoes(
   return data ?? [];
 }
 
+export async function listSimulacoesPorIds(ids: string[]): Promise<Simulacao[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('simulacoes')
+    .select('*')
+    .in('id', ids)
+    .is('deleted_at', null);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getSimulacao(id: string): Promise<Simulacao | null> {
   const supabase = await createClient();
   const { data, error } = await supabase

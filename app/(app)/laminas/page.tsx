@@ -45,9 +45,14 @@ export default async function LaminasPage({ searchParams }: { searchParams: Sear
             Simulações e corridas reais. Exclusão é soft (reversível).
           </p>
         </div>
-        <Button asChild>
-          <Link href="/laminas/nova">Nova simulação</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/laminas/comparar">Comparar</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/laminas/nova">Nova simulação</Link>
+          </Button>
+        </div>
       </header>
 
       <div className="flex flex-wrap gap-2 border-b pb-2 text-sm">
