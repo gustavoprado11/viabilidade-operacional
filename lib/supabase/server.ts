@@ -1,17 +1,22 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient,
+} from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 import type { Database } from '@/lib/supabase/types';
+
+export type TypedSupabaseClient = SupabaseClient<Database>;
 
 /**
  * Server-side Supabase client bound to the user's session via Next cookies.
  * Honors RLS — every query runs as the authenticated user.
  */
-export async function createClient() {
+export async function createClient(): Promise<TypedSupabaseClient> {
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  return createServerClient<Database, 'public'>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -33,7 +38,7 @@ export async function createClient() {
         },
       },
     },
-  );
+  ) as unknown as TypedSupabaseClient;
 }
 
 /**

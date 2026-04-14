@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Análise de Lâminas — Siderúrgica Bandeirante
 
-## Getting Started
+Simulação metalúrgica + financeira de lâminas (carga do alto-forno) para
+decisões de blend, fundentes e operação. Veja `docs/PRD_Sistema_Laminas.md`
+e `docs/CLAUDE.md` para contexto.
 
-First, run the development server:
+## Stack
+Next.js 15 · TypeScript strict · Tailwind v3 · shadcn/ui (manual) · Supabase
+(Postgres + Auth + RLS) · Vitest · Playwright.
+
+## Setup local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.local.example .env.local   # preencher
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000 — a home redireciona para `/login`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Bootstrap de dados (uma vez, após criar o usuário no Supabase Auth)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Criar usuário em **Supabase Dashboard → Authentication → Users**.
+2. Preencher `.env.local`:
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=...
+   BOOTSTRAP_USER_EMAIL=<email do usuário criado>
+   ```
+3. Rodar:
+   ```bash
+   pnpm tsx scripts/bootstrap-data.ts
+   ```
+   O script é idempotente: aborta se o usuário já tem cadastros ativos.
 
-## Learn More
+Cadastros inseridos (conforme `PRD seção 9`):
+- 3 minérios (Serra, Trindade, LHG Corumbá)
+- 5 insumos (calcário, bauxita, dolomita, coque, carvão vegetal)
+- 1 cliente (Gusa Aciaria)
+- 1 parâmetro do forno (defaults do schema)
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev                 # desenvolvimento
+pnpm build               # build de produção
+pnpm typecheck           # tsc --noEmit
+pnpm lint
+pnpm test:unit           # Vitest
+pnpm test:unit:coverage  # Vitest com cobertura
+pnpm test:e2e            # Playwright (requer pnpm exec playwright install chromium na 1ª vez)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Arquitetura
 
-## Deploy on Vercel
+- **Motor de cálculo** em `lib/calculation/` — puro, sem I/O, sem Next/Supabase.
+- **Mutações** em `lib/actions/` (Server Actions).
+- **Queries** em `lib/queries/` (Server Components).
+- **Cadastros versionados**: `softUpdate`/`softDelete` em
+  `lib/queries/versioning.ts` nunca destroem linhas — `valid_to` marca o fim.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Detalhes em `docs/Specs_Tecnicas_Sistema_Laminas.md`.
