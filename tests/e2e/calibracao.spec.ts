@@ -30,12 +30,13 @@ async function login(page: import('@playwright/test').Page) {
 
     const { data: param } = await admin
       .from('parametros_forno')
-      .select('id')
+      .select('*')
       .is('valid_to', null)
       .limit(1)
       .maybeSingle();
     expect(param).toBeDefined();
     const paramId = param!.id;
+    const paramOriginal = param!;
 
     const { data: cli } = await admin
       .from('clientes')
@@ -101,18 +102,30 @@ async function login(page: import('@playwright/test').Page) {
       // Resumo mostra 10 corridas analisadas
       await expect(page.getByTestId('resumo-stats')).toContainText('10 corrida');
 
-      // Ajuste manual simples: mudar c_gusa_fixo de 4.2 para 4.25
-      await page.getByLabel('C gusa fixo (%)').fill('4.25');
+      // Pega valor atual de c_gusa_fixo para computar novo valor distinto
+      const { data: paramAntes } = await admin
+        .from('parametros_forno')
+        .select('c_gusa_fixo')
+        .eq('user_id', userId)
+        .is('valid_to', null)
+        .limit(1)
+        .maybeSingle();
+      const cAtual = Number(paramAntes!.c_gusa_fixo);
+      const cNovo = cAtual === 4.5 ? 4.4 : 4.5; // garante diferença
 
-      // Preview deve mostrar 1 mudança
-      await expect(page.getByTestId('patch-preview')).toContainText('c_gusa_fixo');
+      const cField = page.getByLabel('C gusa fixo (%)');
+      await cField.click();
+      await cField.fill(String(cNovo));
+      await page.keyboard.press('Tab');
 
-      // Justificativa
+      await expect(page.getByTestId('patch-preview')).toContainText('c_gusa_fixo', {
+        timeout: 10_000,
+      });
+
       await page.getByLabel(/Justificativa/).fill('Ajuste preliminar via E2E teste — calibração de C gusa.');
 
       await page.getByTestId('aplicar-calibracao').click();
 
-      // Sucesso: nova versão de parametros_forno + linha em calibracoes
       await expect(page.getByText(/Calibração aplicada/)).toBeVisible({ timeout: 10_000 });
 
       const { data: paramRows } = await admin
@@ -121,7 +134,7 @@ async function login(page: import('@playwright/test').Page) {
         .eq('user_id', userId);
       const ativos = paramRows!.filter((p) => p.valid_to === null);
       expect(ativos.length).toBe(1);
-      expect(Number(ativos[0]!.c_gusa_fixo)).toBeCloseTo(4.25, 3);
+      expect(Number(ativos[0]!.c_gusa_fixo)).toBeCloseTo(cNovo, 3);
 
       const { count: logCount } = await admin
         .from('calibracoes')
@@ -129,13 +142,13 @@ async function login(page: import('@playwright/test').Page) {
         .eq('user_id', userId);
       expect(logCount ?? 0).toBeGreaterThanOrEqual(1);
     } finally {
-      // Cleanup: soft-deleta as corridas criadas; reverte parametros para o
-      // estado original (fecha os novos, reabre o mais antigo seria complexo —
-      // preferimos só soft-deletar as corridas; parametros ficam como ficou).
+      // Cleanup das corridas de teste. Parâmetros ficam como o teste deixou:
+      // rodar `pnpm tsx scripts/revert-calibracao-e2e.ts` para restaurar.
       await admin
         .from('simulacoes')
         .update({ deleted_at: new Date().toISOString() })
         .ilike('nome', `${batchTag}_%`);
+      void paramOriginal;
     }
   },
 );
