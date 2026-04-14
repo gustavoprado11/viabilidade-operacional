@@ -211,6 +211,9 @@ export function SimuladorForm(props: Props) {
         {/* hidden JSON fields */}
         <input type="hidden" name="blend" value={JSON.stringify(payload.blend)} />
         <input type="hidden" name="quebras" value={JSON.stringify(payload.quebras)} />
+        {initial?.simulacao_origem_id ? (
+          <input type="hidden" name="simulacao_origem_id" value={initial.simulacao_origem_id} />
+        ) : null}
 
         {state.status === 'error' && state.message ? (
           <Alert variant="destructive" data-testid="form-error">

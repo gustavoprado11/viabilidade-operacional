@@ -373,6 +373,7 @@ export type Database = {
           parametros_id: string
           quebras: Json
           resultado: Json
+          simulacao_origem_id: string | null
           sucata_destino: string
           sucata_kg: number
           sucata_preco_ton: number
@@ -402,6 +403,7 @@ export type Database = {
           parametros_id: string
           quebras: Json
           resultado: Json
+          simulacao_origem_id?: string | null
           sucata_destino?: string
           sucata_kg?: number
           sucata_preco_ton?: number
@@ -431,6 +433,7 @@ export type Database = {
           parametros_id?: string
           quebras?: Json
           resultado?: Json
+          simulacao_origem_id?: string | null
           sucata_destino?: string
           sucata_kg?: number
           sucata_preco_ton?: number
@@ -451,6 +454,13 @@ export type Database = {
             columns: ["parametros_id"]
             isOneToOne: false
             referencedRelation: "parametros_forno"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulacoes_simulacao_origem_id_fkey"
+            columns: ["simulacao_origem_id"]
+            isOneToOne: false
+            referencedRelation: "simulacoes"
             referencedColumns: ["id"]
           },
         ]

@@ -51,6 +51,12 @@ const payloadSchema = z
       .nullable()
       .optional()
       .transform((v) => (v && v.length > 0 ? v : null)),
+    simulacao_origem_id: z
+      .string()
+      .uuid()
+      .nullable()
+      .optional()
+      .transform((v) => (v && v.length > 0 ? v : null)),
   })
   .refine(
     (d) => Math.abs(d.blend.reduce((s, b) => s + b.pct, 0) - 100) < 0.01,
@@ -212,6 +218,7 @@ export async function criarSimulacaoAction(
       parametros_id: bundle.parametros.id,
       corrida_timestamp: parsed.data.corrida_timestamp ?? null,
       observacoes: parsed.data.observacoes ?? null,
+      simulacao_origem_id: parsed.data.simulacao_origem_id ?? null,
     })
     .select('id')
     .single();
@@ -362,4 +369,85 @@ export async function duplicarSimulacaoAction(id: string): Promise<void> {
 
   revalidatePath('/laminas');
   redirect(`/laminas/${inserted.id}?editar=1`);
+}
+
+/**
+ * Atualiza apenas a análise química real da corrida (gusa e/ou escória).
+ * NÃO recalcula o snapshot previsto — os desvios são derivados on-the-fly
+ * na renderização da página. Mantém o snapshot imutável (sagrado).
+ */
+const analiseGusaSchema = z
+  .object({
+    p: z.coerce.number().optional(),
+    si: z.coerce.number().optional(),
+    mn: z.coerce.number().optional(),
+    s: z.coerce.number().optional(),
+    c: z.coerce.number().optional(),
+  })
+  .partial();
+
+const analiseEscoriaSchema = z
+  .object({
+    b2: z.coerce.number().optional(),
+    b4: z.coerce.number().optional(),
+    al2o3Pct: z.coerce.number().optional(),
+    mgoAl2o3: z.coerce.number().optional(),
+    volumeTon: z.coerce.number().optional(),
+  })
+  .partial();
+
+function stripEmpty(raw: Record<string, FormDataEntryValue>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === 'string' && v.trim() !== '') out[k] = v;
+  }
+  return out;
+}
+
+export async function atualizarAnaliseQuimicaAction(
+  id: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const gusaRaw: Record<string, FormDataEntryValue> = {};
+  const escoriaRaw: Record<string, FormDataEntryValue> = {};
+  for (const [key, val] of formData.entries()) {
+    if (key.startsWith('gusa_')) gusaRaw[key.slice(5)] = val;
+    else if (key.startsWith('escoria_')) escoriaRaw[key.slice(8)] = val;
+  }
+  const gusaParsed = analiseGusaSchema.safeParse(stripEmpty(gusaRaw));
+  const escoriaParsed = analiseEscoriaSchema.safeParse(stripEmpty(escoriaRaw));
+  if (!gusaParsed.success || !escoriaParsed.success) {
+    return {
+      status: 'error',
+      message: 'Dados inválidos.',
+      fieldErrors: {
+        ...(gusaParsed.success ? {} : toFieldErrors(gusaParsed.error)),
+        ...(escoriaParsed.success ? {} : toFieldErrors(escoriaParsed.error)),
+      },
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('simulacoes')
+    .update({
+      analise_gusa_real: Object.keys(gusaParsed.data).length
+        ? JSON.parse(JSON.stringify(gusaParsed.data))
+        : null,
+      analise_escoria_real: Object.keys(escoriaParsed.data).length
+        ? JSON.parse(JSON.stringify(escoriaParsed.data))
+        : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('tipo', 'corrida_real')
+    .is('deleted_at', null);
+
+  if (error) return { status: 'error', message: error.message };
+
+  revalidatePath(`/laminas/${id}`);
+  revalidatePath(`/corridas/${id}`);
+  revalidatePath('/corridas');
+  return { status: 'success', message: 'Análise química registrada.' };
 }

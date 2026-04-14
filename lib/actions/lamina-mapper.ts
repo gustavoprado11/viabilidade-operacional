@@ -110,6 +110,7 @@ export type LaminaFormPayload = {
   sucata_destino: SucataDestino;
   corrida_timestamp?: string | null;
   observacoes?: string | null;
+  simulacao_origem_id?: string | null;
 };
 
 type CadastroBundle = {
