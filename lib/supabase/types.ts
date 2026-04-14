@@ -364,6 +364,7 @@ export type Database = {
           coque_kg: number
           corrida_timestamp: string | null
           created_at: string
+          deleted_at: string | null
           dolomita_kg: number
           estabilidade: string
           id: string
@@ -392,6 +393,7 @@ export type Database = {
           coque_kg: number
           corrida_timestamp?: string | null
           created_at?: string
+          deleted_at?: string | null
           dolomita_kg?: number
           estabilidade: string
           id?: string
@@ -420,6 +422,7 @@ export type Database = {
           coque_kg?: number
           corrida_timestamp?: string | null
           created_at?: string
+          deleted_at?: string | null
           dolomita_kg?: number
           estabilidade?: string
           id?: string
