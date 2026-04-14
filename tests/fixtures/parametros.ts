@@ -31,6 +31,8 @@ export const parametros: ParametrosForno = {
   debPisTon: 212.13,
   debIcmsTon: 312.72,
   debIpiTon: 84.69,
+  desvioToleranciaPct: 0.05,
+  desvioAtencaoPct: 0.15,
 };
 
 export const clienteGusaAciaria: ClienteSpec = {

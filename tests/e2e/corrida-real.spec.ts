@@ -37,7 +37,7 @@ function ts() {
     await page.getByLabel('Data/hora da corrida').fill(ts());
     await expect(page.getByTestId('card-producao')).toBeVisible({ timeout: 10_000 });
     await page.getByTestId('submit').click();
-    await page.waitForURL(/\/laminas\/[0-9a-f-]+$/, { timeout: 15_000 });
+    await page.waitForURL(/\/corridas\/[0-9a-f-]+$/, { timeout: 15_000 });
 
     // Sem análise, tabela de desvios mostra "Sem análise química real"
     // A corrida fica em /laminas/[id] após criar (mesma rota); acessamos via /corridas
@@ -96,7 +96,7 @@ function ts() {
     await page.getByLabel('Nome').fill(nomeCor);
     await page.getByLabel('Data/hora da corrida').fill(ts());
     await page.getByTestId('submit').click();
-    await page.waitForURL(/\/laminas\/[0-9a-f-]+$/, { timeout: 15_000 });
+    await page.waitForURL(/\/corridas\/[0-9a-f-]+$/, { timeout: 15_000 });
 
     // Abre a corrida pela tela de corridas
     await page.goto('/corridas');
@@ -130,7 +130,7 @@ function ts() {
     await page.getByLabel('Nome').fill(nome);
     await page.getByLabel('Data/hora da corrida').fill(ts());
     await page.getByTestId('submit').click();
-    await page.waitForURL(/\/laminas\/[0-9a-f-]+$/, { timeout: 15_000 });
+    await page.waitForURL(/\/corridas\/[0-9a-f-]+$/, { timeout: 15_000 });
 
     await page.goto('/corridas');
     await page

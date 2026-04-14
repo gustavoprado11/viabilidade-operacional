@@ -20,17 +20,21 @@ function fmt(n: number | null, digits = 3, suffix = '') {
   return `${n.toLocaleString('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits })}${suffix}`;
 }
 
-function classePct(p: number | null) {
+function classePct(p: number | null, tol: number, atencao: number) {
   if (p === null) return '';
   const abs = Math.abs(p);
-  if (abs <= 0.05) return 'text-emerald-600';
-  if (abs <= 0.15) return 'text-amber-600';
+  if (abs <= tol) return 'text-emerald-600';
+  if (abs <= atencao) return 'text-amber-600';
   return 'text-destructive';
 }
 
-type Props = { desvios: DesviosResult };
+type Props = {
+  desvios: DesviosResult;
+  tolerancia?: number;
+  atencao?: number;
+};
 
-export function DesviosCard({ desvios }: Props) {
+export function DesviosCard({ desvios, tolerancia = 0.05, atencao = 0.15 }: Props) {
   const tem =
     desvios.gusa.some((i) => i.real !== null) ||
     desvios.escoria.some((i) => i.real !== null);
@@ -68,7 +72,7 @@ export function DesviosCard({ desvios }: Props) {
                     <TableCell className="tabular-nums">{fmt(i.previsto)}</TableCell>
                     <TableCell className="tabular-nums">{fmt(i.real)}</TableCell>
                     <TableCell className="tabular-nums">{fmt(i.desvio)}</TableCell>
-                    <TableCell className={`tabular-nums ${classePct(i.desvioPct)}`}>
+                    <TableCell className={`tabular-nums ${classePct(i.desvioPct, tolerancia, atencao)}`}>
                       {i.desvioPct === null ? '—' : fmt(i.desvioPct * 100, 2, '%')}
                     </TableCell>
                   </TableRow>

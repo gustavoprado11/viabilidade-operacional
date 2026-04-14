@@ -74,6 +74,9 @@ export type ParametrosForno = Readonly<{
   debPisTon: number;
   debIcmsTon: number;
   debIpiTon: number;
+
+  desvioToleranciaPct: number;
+  desvioAtencaoPct: number;
 }>;
 
 export type Quebras = Readonly<{

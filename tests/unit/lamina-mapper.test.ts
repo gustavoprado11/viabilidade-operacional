@@ -101,6 +101,8 @@ const parametros: Database['public']['Tables']['parametros_forno']['Row'] = {
   deb_pis_ton: 212.13,
   deb_icms_ton: 312.72,
   deb_ipi_ton: 84.69,
+  desvio_tolerancia_pct: 0.05,
+  desvio_atencao_pct: 0.15,
   valid_from: '2024-01-01',
   valid_to: null,
   created_at: '2024-01-01',

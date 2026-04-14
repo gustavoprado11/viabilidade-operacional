@@ -226,7 +226,12 @@ export async function criarSimulacaoAction(
   if (error) return { status: 'error', message: error.message };
 
   revalidatePath('/laminas');
-  redirect(`/laminas/${data!.id}`);
+  revalidatePath('/corridas');
+  redirect(
+    parsed.data.tipo === 'corrida_real'
+      ? `/corridas/${data!.id}`
+      : `/laminas/${data!.id}`,
+  );
 }
 
 export async function atualizarSimulacaoAction(

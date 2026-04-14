@@ -258,6 +258,8 @@ export type Database = {
           deb_icms_ton: number
           deb_ipi_ton: number
           deb_pis_ton: number
+          desvio_atencao_pct: number
+          desvio_tolerancia_pct: number
           duracao_corrida_min: number
           fator_atencao: number
           fator_estavel: number
@@ -293,6 +295,8 @@ export type Database = {
           deb_icms_ton?: number
           deb_ipi_ton?: number
           deb_pis_ton?: number
+          desvio_atencao_pct?: number
+          desvio_tolerancia_pct?: number
           duracao_corrida_min?: number
           fator_atencao?: number
           fator_estavel?: number
@@ -328,6 +332,8 @@ export type Database = {
           deb_icms_ton?: number
           deb_ipi_ton?: number
           deb_pis_ton?: number
+          desvio_atencao_pct?: number
+          desvio_tolerancia_pct?: number
           duracao_corrida_min?: number
           fator_atencao?: number
           fator_estavel?: number

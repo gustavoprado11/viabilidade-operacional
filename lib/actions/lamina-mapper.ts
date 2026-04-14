@@ -87,6 +87,8 @@ export function parametrosRowToInput(r: ParamRow): ParametrosForno {
     debPisTon: Number(r.deb_pis_ton),
     debIcmsTon: Number(r.deb_icms_ton),
     debIpiTon: Number(r.deb_ipi_ton),
+    desvioToleranciaPct: Number(r.desvio_tolerancia_pct),
+    desvioAtencaoPct: Number(r.desvio_atencao_pct),
   };
 }
 

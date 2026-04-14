@@ -66,6 +66,8 @@ const parametrosSchema = z.object({
   debPisTon: z.number().nonnegative(),
   debIcmsTon: z.number().nonnegative(),
   debIpiTon: z.number().nonnegative(),
+  desvioToleranciaPct: z.number().min(0).max(1),
+  desvioAtencaoPct: z.number().min(0).max(1),
 });
 
 const quebrasSchema = z.object({

@@ -22,6 +22,7 @@ import {
 } from '@/lib/actions/lamina-actions';
 import { clienteRowToSpec } from '@/lib/actions/lamina-mapper';
 import { getClienteAtivo } from '@/lib/queries/clientes';
+import { getParametrosAtivos } from '@/lib/queries/parametros';
 import {
   getMineriosPorIds,
   getSimulacao,
@@ -45,10 +46,11 @@ export default async function CorridaDetailPage({ params }: Props) {
   const blend = (corrida.blend ?? []) as BlendDb;
   const referencedIds = blend.map((b) => b.minerio_id);
 
-  const [cliente, origem, arquivados] = await Promise.all([
+  const [cliente, origem, arquivados, parametros] = await Promise.all([
     corrida.cliente_id ? getClienteAtivo(corrida.cliente_id) : null,
     corrida.simulacao_origem_id ? getSimulacao(corrida.simulacao_origem_id) : null,
     getMineriosPorIds(referencedIds),
+    getParametrosAtivos(),
   ]);
 
   // Resolver cliente mesmo se arquivado
@@ -155,7 +157,11 @@ export default async function CorridaDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <DesviosCard desvios={desvios} />
+      <DesviosCard
+        desvios={desvios}
+        tolerancia={parametros ? Number(parametros.desvio_tolerancia_pct) : undefined}
+        atencao={parametros ? Number(parametros.desvio_atencao_pct) : undefined}
+      />
     </div>
   );
 }
