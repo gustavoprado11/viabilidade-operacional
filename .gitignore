@@ -34,6 +34,10 @@ yarn-error.log*
 .env.local
 .env*.local
 
+# supabase cli transient state
+supabase/.temp/
+supabase/.branches/
+
 # vercel
 .vercel
 

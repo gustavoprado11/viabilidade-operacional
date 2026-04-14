@@ -1,0 +1,15 @@
+-- ============================================================
+-- Seed — intencionalmente vazio.
+--
+-- Motivo: todas as tabelas de cadastro têm FK para auth.users(id)
+-- e RLS filtra por auth.uid(). O schema auth é gerenciado pelo
+-- Supabase e não há contexto de usuário quando `supabase db push`
+-- executa este arquivo.
+--
+-- Os dados de bootstrap (minérios, insumos, cliente, parâmetros)
+-- são carregados via `scripts/bootstrap-data.ts` executado com o
+-- service_role client após o primeiro login do usuário real,
+-- recebendo `user_id` via env. Esse script vem em fase posterior.
+--
+-- Referência: PRD seção 9, Specs seção 3.2.
+-- ============================================================
