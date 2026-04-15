@@ -208,7 +208,11 @@ export default async function LaminaDetailPage({ params, searchParams }: Props) 
 
           {cliente ? (
             <div>
-              <ResultadoLamina r={resultadoSnapshot} cliente={clienteRowToSpec(cliente)} />
+              <ResultadoLamina
+                r={resultadoSnapshot}
+                cliente={clienteRowToSpec(cliente)}
+                corridasPorDia={parametros?.corridas_por_dia ?? 16}
+              />
             </div>
           ) : null}
         </div>

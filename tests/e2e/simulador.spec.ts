@@ -43,6 +43,26 @@ import { E2E_READY, loginE2E } from './helpers/auth';
 );
 
 (E2E_READY ? test : test.skip)(
+  'preview mostra projeção diária (Produção e Financeiro)',
+  async ({ page }) => {
+    await loginE2E(page);
+    await page.goto('/laminas/nova');
+    await expect(page.getByTestId('card-producao')).toBeVisible({ timeout: 10_000 });
+
+    const producao = page.getByTestId('card-producao');
+    await expect(producao.getByTestId('projecao-diaria-header')).toBeVisible();
+    await expect(producao).toContainText('Gusa vazado/dia');
+    await expect(producao).toContainText('Sucata gerada/dia');
+    await expect(producao).toContainText('Produção total/dia');
+    await expect(producao).toContainText('Corridas por dia');
+
+    const financeiro = page.getByTestId('card-financeiro');
+    await expect(financeiro).toContainText('Resultado/dia');
+    await expect(financeiro).toContainText(/Projeção:.*corridas\/dia/);
+  },
+);
+
+(E2E_READY ? test : test.skip)(
   'corrida real exige timestamp',
   async ({ page }) => {
     await loginE2E(page);

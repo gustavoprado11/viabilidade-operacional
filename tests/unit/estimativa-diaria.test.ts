@@ -92,6 +92,15 @@ describe('calcularEstimativaDiaria', () => {
     expect(e.resultadoMes).toBeCloseTo(12_000 * 30, 6);
   });
 
+  it('projeção de 1 lâmina × N corridas bate com multiplicação direta', () => {
+    const e = calcularEstimativaDiaria(
+      [mk({ gusaCorrida: 7.15, resultadoCorrida: 123 })],
+      16,
+    );
+    expect(e.gusaDia).toBeCloseTo(7.15 * 16, 6);
+    expect(e.resultadoDia).toBeCloseTo(123 * 16, 6);
+  });
+
   it('resultadoMes = resultadoDia × 30', () => {
     const e = calcularEstimativaDiaria(
       [mk({ resultadoCorrida: 500 }), mk({ resultadoCorrida: 700 })],

@@ -140,7 +140,11 @@ export default async function CorridaDetailPage({ params }: Props) {
         </Card>
 
         {clienteRow ? (
-          <ResultadoLamina r={resultadoSnapshot} cliente={clienteRowToSpec(clienteRow)} />
+          <ResultadoLamina
+            r={resultadoSnapshot}
+            cliente={clienteRowToSpec(clienteRow)}
+            corridasPorDia={parametros?.corridas_por_dia ?? 16}
+          />
         ) : null}
       </div>
 

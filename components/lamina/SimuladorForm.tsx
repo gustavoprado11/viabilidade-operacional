@@ -569,6 +569,7 @@ export function SimuladorForm(props: Props) {
                 cMax: Number(cliente.c_max),
                 precoGusa: Number(cliente.preco_gusa_ton),
               }}
+              corridasPorDia={parametros.corridas_por_dia ?? 16}
             />
           ) : null
         ) : (

@@ -30,14 +30,18 @@ function Row({ label, value, flag }: { label: string; value: string; flag?: 'ok'
 export function ResultadoLamina({
   r,
   cliente,
+  corridasPorDia = 16,
 }: {
   r: LaminaResultado;
   cliente: ClienteSpec;
+  corridasPorDia?: number;
 }) {
   const esc = r.escoria;
   const gusa = r.gusa;
   const fin = r.financeiro;
   const prod = r.producao;
+  const cpd = corridasPorDia;
+  const resultadoDia = fin.resultadoCorrida * cpd;
 
   const flagSpec = (ok: boolean, value: number, max: number) =>
     !ok ? 'err' : max - value < 0.05 * max ? 'warn' : 'ok';
@@ -60,6 +64,26 @@ export function ResultadoLamina({
             <Row label="Gusa vazado" value={`${num(prod.gusaVazado)} ton`} />
             <Row label="Sucata gerada" value={`${num(prod.sucataGerada)} ton`} />
             <Row label="Produção total" value={`${num(prod.producaoTotal)} ton`} />
+
+            <div
+              className="mt-3 border-t pt-2 text-xs uppercase tracking-wide text-muted-foreground"
+              data-testid="projecao-diaria-header"
+            >
+              Projeção diária
+            </div>
+            <Row label="Corridas por dia" value={String(cpd)} />
+            <Row
+              label="Gusa vazado/dia"
+              value={`${num(prod.gusaVazado * cpd)} ton`}
+            />
+            <Row
+              label="Sucata gerada/dia"
+              value={`${num(prod.sucataGerada * cpd)} ton`}
+            />
+            <Row
+              label="Produção total/dia"
+              value={`${num(prod.producaoTotal * cpd)} ton`}
+            />
           </CardContent>
         </Card>
 
@@ -163,7 +187,9 @@ export function ResultadoLamina({
         <Card data-testid="card-financeiro">
           <CardHeader>
             <CardTitle className="text-base">Financeiro</CardTitle>
-            <CardDescription>Por corrida + projeção mensal</CardDescription>
+            <CardDescription>
+              Por corrida + projeção (Projeção: {cpd} corridas/dia × 30 dias/mês)
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Row label="Custo matérias" value={brl(fin.custoMaterias)} />
@@ -183,6 +209,11 @@ export function ResultadoLamina({
               label="Resultado/corrida"
               value={brl(fin.resultadoCorrida)}
               flag={fin.resultadoCorrida > 0 ? 'ok' : 'err'}
+            />
+            <Row
+              label="Resultado/dia"
+              value={brl(resultadoDia)}
+              flag={resultadoDia > 0 ? 'ok' : 'err'}
             />
             <Row
               label="Resultado/mês projetado"
