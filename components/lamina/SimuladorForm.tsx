@@ -412,8 +412,13 @@ export function SimuladorForm(props: Props) {
                 <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   por corrida
                 </span>
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
-                  💰 afeta custo
+                {/* TODO v1.1: quando modelo incorporar cinzas de carvão/coque na escória,
+                    remover esta tag. Hoje sinaliza limitação conhecida. */}
+                <span
+                  className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                  title="Este insumo contribui com cinzas (~2% Al₂O₃) na escória real, mas o modelo atual não contabiliza essa contribuição. Calibração prevista em v1.1 quando houver dados reais."
+                >
+                  ⓘ cinzas não modeladas
                 </span>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
@@ -507,8 +512,13 @@ export function SimuladorForm(props: Props) {
             <div className="space-y-2">
               <Label htmlFor="coque_kg" className="flex items-center gap-2">
                 Coque (total na corrida, kg)
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
-                  💰 afeta custo
+                {/* TODO v1.1: quando modelo incorporar cinzas de carvão/coque na escória,
+                    remover esta tag. Hoje sinaliza limitação conhecida. */}
+                <span
+                  className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                  title="Este insumo contribui com cinzas (~2% Al₂O₃) na escória real, mas o modelo atual não contabiliza essa contribuição. Calibração prevista em v1.1 quando houver dados reais."
+                >
+                  ⓘ cinzas não modeladas
                 </span>
               </Label>
               <Input
