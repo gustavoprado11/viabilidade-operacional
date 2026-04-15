@@ -364,8 +364,10 @@ export type Database = {
           blend: Json
           calcario_kg: number
           calcario_manual: boolean
+          carvao_cargas_por_corrida: number | null
           carvao_densidade: number
           carvao_mdc: number
+          carvao_peso_por_carga_kg: number | null
           classificacao: string
           cliente_id: string | null
           coque_kg: number
@@ -395,8 +397,10 @@ export type Database = {
           blend: Json
           calcario_kg: number
           calcario_manual?: boolean
+          carvao_cargas_por_corrida?: number | null
           carvao_densidade: number
           carvao_mdc: number
+          carvao_peso_por_carga_kg?: number | null
           classificacao: string
           cliente_id?: string | null
           coque_kg: number
@@ -426,8 +430,10 @@ export type Database = {
           blend?: Json
           calcario_kg?: number
           calcario_manual?: boolean
+          carvao_cargas_por_corrida?: number | null
           carvao_densidade?: number
           carvao_mdc?: number
+          carvao_peso_por_carga_kg?: number | null
           classificacao?: string
           cliente_id?: string | null
           coque_kg?: number

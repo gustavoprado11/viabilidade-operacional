@@ -27,6 +27,18 @@ const payloadSchema = z
     blend: z.array(blendItemSchema).min(1),
     carvao_mdc: z.coerce.number().nonnegative(),
     carvao_densidade: z.coerce.number().positive(),
+    carvao_cargas_por_corrida: z
+      .preprocess(
+        (v) => (v === '' || v == null ? null : v),
+        z.coerce.number().positive().nullable(),
+      )
+      .optional(),
+    carvao_peso_por_carga_kg: z
+      .preprocess(
+        (v) => (v === '' || v == null ? null : v),
+        z.coerce.number().positive().nullable(),
+      )
+      .optional(),
     coque_kg: z.coerce.number().nonnegative(),
     calcario_kg: z.coerce.number().nonnegative(),
     calcario_manual: z
@@ -196,6 +208,9 @@ export async function criarSimulacaoAction(
 
   const input = buildLaminaInput(parsed.data, bundle);
   const resultado = simulateLamina(input);
+  // Persiste o MDC efetivamente usado (derivado quando há cargas/peso) para
+  // manter o campo carvao_mdc consistente com a simulação gravada.
+  const mdcPersistido = input.carvao.mdc;
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -206,8 +221,10 @@ export async function criarSimulacaoAction(
       tipo: parsed.data.tipo,
       cliente_id: parsed.data.cliente_id,
       blend: parsed.data.blend,
-      carvao_mdc: parsed.data.carvao_mdc,
+      carvao_mdc: mdcPersistido,
       carvao_densidade: parsed.data.carvao_densidade,
+      carvao_cargas_por_corrida: parsed.data.carvao_cargas_por_corrida ?? null,
+      carvao_peso_por_carga_kg: parsed.data.carvao_peso_por_carga_kg ?? null,
       coque_kg: parsed.data.coque_kg,
       calcario_kg: parsed.data.calcario_kg,
       calcario_manual: parsed.data.calcario_manual,
@@ -280,6 +297,7 @@ export async function atualizarSimulacaoAction(
 
   const input = buildLaminaInput(parsed.data, bundle);
   const resultado = simulateLamina(input);
+  const mdcPersistido = input.carvao.mdc;
 
   const { error } = await supabase
     .from('simulacoes')
@@ -287,8 +305,10 @@ export async function atualizarSimulacaoAction(
       nome: parsed.data.nome,
       cliente_id: parsed.data.cliente_id,
       blend: parsed.data.blend,
-      carvao_mdc: parsed.data.carvao_mdc,
+      carvao_mdc: mdcPersistido,
       carvao_densidade: parsed.data.carvao_densidade,
+      carvao_cargas_por_corrida: parsed.data.carvao_cargas_por_corrida ?? null,
+      carvao_peso_por_carga_kg: parsed.data.carvao_peso_por_carga_kg ?? null,
       coque_kg: parsed.data.coque_kg,
       calcario_kg: parsed.data.calcario_kg,
       calcario_manual: parsed.data.calcario_manual,
@@ -358,6 +378,8 @@ export async function duplicarSimulacaoAction(id: string): Promise<void> {
       blend: src.blend,
       carvao_mdc: src.carvao_mdc,
       carvao_densidade: src.carvao_densidade,
+      carvao_cargas_por_corrida: src.carvao_cargas_por_corrida ?? null,
+      carvao_peso_por_carga_kg: src.carvao_peso_por_carga_kg ?? null,
       coque_kg: src.coque_kg,
       calcario_kg: src.calcario_kg,
       bauxita_kg: src.bauxita_kg,

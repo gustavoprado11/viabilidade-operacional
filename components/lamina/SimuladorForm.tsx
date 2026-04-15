@@ -25,6 +25,11 @@ import {
   buildLaminaInput,
   type LaminaFormPayload,
 } from '@/lib/actions/lamina-mapper';
+import {
+  CARGAS_PADRAO,
+  PESO_POR_CARGA_PADRAO_KG,
+  calcularMdc,
+} from '@/lib/laminas/mdc-calc';
 import { initialActionState, type ActionState } from '@/lib/actions/types';
 import type { Database } from '@/lib/supabase/types';
 
@@ -101,10 +106,22 @@ export function SimuladorForm(props: Props) {
       }));
 
   const [blend, setBlend] = useState(defaultBlend);
-  const [carvaoMdc, setCarvaoMdc] = useState(initial?.carvao_mdc ?? 23.3);
   const [carvaoDens, setCarvaoDens] = useState(
     initial?.carvao_densidade ?? Number(carvao.densidade_kg_m3 ?? 220),
   );
+  const initialTemDetalhe =
+    initial?.carvao_cargas_por_corrida != null &&
+    initial?.carvao_peso_por_carga_kg != null;
+  const [carvaoCargas, setCarvaoCargas] = useState<number>(
+    initial?.carvao_cargas_por_corrida ?? CARGAS_PADRAO,
+  );
+  const [carvaoPesoCarga, setCarvaoPesoCarga] = useState<number>(
+    initial?.carvao_peso_por_carga_kg ?? PESO_POR_CARGA_PADRAO_KG,
+  );
+  const mdcRaw = calcularMdc(carvaoCargas, carvaoPesoCarga, carvaoDens);
+  const carvaoMdc = mdcRaw > 0 ? mdcRaw : (initial?.carvao_mdc ?? 0);
+  const mostrarAvisoLegado =
+    initial?.id != null && !initialTemDetalhe && (initial?.carvao_mdc ?? 0) > 0;
   const [coqueKg, setCoqueKg] = useState(initial?.coque_kg ?? 1280);
   const [calcarioKg, setCalcarioKg] = useState(initial?.calcario_kg ?? 0);
   const [calcarioManual, setCalcarioManual] = useState(
@@ -141,6 +158,8 @@ export function SimuladorForm(props: Props) {
       blend: blend.map((b) => ({ minerio_id: b.minerio_id, pct: Number(b.pct) })),
       carvao_mdc: Number(carvaoMdc),
       carvao_densidade: Number(carvaoDens),
+      carvao_cargas_por_corrida: Number(carvaoCargas),
+      carvao_peso_por_carga_kg: Number(carvaoPesoCarga),
       coque_kg: Number(coqueKg),
       calcario_kg: Number(calcarioKg),
       calcario_manual: calcarioManual,
@@ -160,7 +179,7 @@ export function SimuladorForm(props: Props) {
       observacoes: observacoes || null,
     }),
     [
-      nome, tipo, clienteId, blend, carvaoMdc, carvaoDens, coqueKg, calcarioKg,
+      nome, tipo, clienteId, blend, carvaoMdc, carvaoDens, carvaoCargas, carvaoPesoCarga, coqueKg, calcarioKg,
       calcarioManual, bauxitaKg, dolomitaKg, quebras, estabilidade, sucataKg,
       sucataPreco, sucataDestino, corridaTs, observacoes,
     ],
@@ -387,22 +406,86 @@ export function SimuladorForm(props: Props) {
             <CardTitle>Carvão, coque e fundentes</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="carvao_mdc" className="flex items-center gap-2">
-                Carvão (MDC/corrida)
+            <div className="space-y-2 sm:col-span-2 rounded-md border p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">Carvão</span>
                 <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
                   💰 afeta custo
                 </span>
-              </Label>
-              <Input
-                id="carvao_mdc" name="carvao_mdc" type="number" step="0.01"
-                value={carvaoMdc} onChange={(e) => setCarvaoMdc(Number(e.target.value))}
-                title="Afeta custo operacional. Cinzas do carvão vegetal não entram no balanço da escória (simplificação do modelo — ver TODO v1.1)."
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <Label htmlFor="carvao_cargas_por_corrida" className="text-xs">
+                    Cargas por corrida
+                  </Label>
+                  <Input
+                    id="carvao_cargas_por_corrida"
+                    name="carvao_cargas_por_corrida"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={carvaoCargas}
+                    onChange={(e) => setCarvaoCargas(Number(e.target.value))}
+                    data-testid="carvao-cargas"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="carvao_peso_por_carga_kg" className="text-xs">
+                    Peso por carga (kg)
+                  </Label>
+                  <Input
+                    id="carvao_peso_por_carga_kg"
+                    name="carvao_peso_por_carga_kg"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={carvaoPesoCarga}
+                    onChange={(e) => setCarvaoPesoCarga(Number(e.target.value))}
+                    data-testid="carvao-peso-carga"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="carvao_densidade" className="text-xs">
+                    Densidade (kg/m³)
+                  </Label>
+                  <Input
+                    id="carvao_densidade"
+                    name="carvao_densidade"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={carvaoDens}
+                    onChange={(e) => setCarvaoDens(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div
+                className="mt-1 flex items-baseline justify-between border-t pt-2 text-sm"
+                data-testid="carvao-mdc-calculado"
+              >
+                <span className="text-muted-foreground">
+                  MDC/corrida calculado
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {carvaoMdc.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              {mostrarAvisoLegado ? (
+                <p className="text-xs text-amber-700">
+                  Valor de MDC persistido sem detalhamento — preencha cargas e
+                  peso para habilitar cálculo automático.
+                </p>
+              ) : null}
+              {/* Enviado derivado; motor reconstrói o valor no server a partir
+                  de cargas/peso/densidade, mas mantemos o campo para compat. */}
+              <input
+                type="hidden"
+                name="carvao_mdc"
+                value={Number.isFinite(carvaoMdc) ? carvaoMdc : 0}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="carvao_densidade">Densidade carvão (kg/m³)</Label>
-              <Input id="carvao_densidade" name="carvao_densidade" type="number" step="0.01" value={carvaoDens} onChange={(e) => setCarvaoDens(Number(e.target.value))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="coque_kg" className="flex items-center gap-2">

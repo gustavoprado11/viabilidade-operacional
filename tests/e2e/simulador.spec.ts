@@ -63,6 +63,24 @@ import { E2E_READY, loginE2E } from './helpers/auth';
 );
 
 (E2E_READY ? test : test.skip)(
+  'editar cargas/peso do carvão recalcula MDC em tempo real',
+  async ({ page }) => {
+    await loginE2E(page);
+    await page.goto('/laminas/nova');
+    await expect(page.getByTestId('card-producao')).toBeVisible({ timeout: 10_000 });
+
+    const mdcBox = page.getByTestId('carvao-mdc-calculado');
+    const mdcAntes = await mdcBox.innerText();
+
+    await page.getByTestId('carvao-cargas').fill('10');
+    await page.getByTestId('carvao-peso-carga').fill('500');
+    // (10 × 500) / 220 = 22.73
+    await expect(mdcBox).toContainText('22,73');
+    expect(mdcAntes).not.toContain('22,73');
+  },
+);
+
+(E2E_READY ? test : test.skip)(
   'corrida real exige timestamp',
   async ({ page }) => {
     await loginE2E(page);

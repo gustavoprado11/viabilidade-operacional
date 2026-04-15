@@ -53,6 +53,14 @@ export default async function NovaCorridaPage({ searchParams }: Props) {
         blend: origem.blend as BlendDb,
         carvao_mdc: Number(origem.carvao_mdc),
         carvao_densidade: Number(origem.carvao_densidade),
+        carvao_cargas_por_corrida:
+          origem.carvao_cargas_por_corrida == null
+            ? null
+            : Number(origem.carvao_cargas_por_corrida),
+        carvao_peso_por_carga_kg:
+          origem.carvao_peso_por_carga_kg == null
+            ? null
+            : Number(origem.carvao_peso_por_carga_kg),
         coque_kg: Number(origem.coque_kg),
         calcario_kg: Number(origem.calcario_kg),
         bauxita_kg: Number(origem.bauxita_kg),

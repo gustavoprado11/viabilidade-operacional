@@ -8,6 +8,7 @@ import type {
   SucataDestino,
   Estabilidade,
 } from '@/lib/calculation/types';
+import { calcularMdc } from '@/lib/laminas/mdc-calc';
 import type { Database } from '@/lib/supabase/types';
 
 type MinerioRow = Database['public']['Tables']['minerios']['Row'];
@@ -101,6 +102,8 @@ export type LaminaFormPayload = {
   blend: BlendPayload;
   carvao_mdc: number;
   carvao_densidade: number;
+  carvao_cargas_por_corrida?: number | null;
+  carvao_peso_por_carga_kg?: number | null;
   coque_kg: number;
   calcario_kg: number;
   calcario_manual?: boolean;
@@ -141,10 +144,24 @@ export function buildLaminaInput(
     return { minerio: minerioRowToInput(row), pct: item.pct };
   });
 
+  // Se o form enviou cargas/peso, MDC é derivado deles (fonte-de-verdade).
+  // Caso contrário (ex.: URL params do otimizador, lâminas antigas sendo
+  // replayadas), cai para o mdc literal do payload.
+  const temDetalhamento =
+    payload.carvao_cargas_por_corrida != null &&
+    payload.carvao_peso_por_carga_kg != null;
+  const mdcCalculado = temDetalhamento
+    ? calcularMdc(
+        payload.carvao_cargas_por_corrida!,
+        payload.carvao_peso_por_carga_kg!,
+        payload.carvao_densidade,
+      )
+    : payload.carvao_mdc;
+
   return {
     blend,
     carvao: {
-      mdc: payload.carvao_mdc,
+      mdc: mdcCalculado,
       densidade: payload.carvao_densidade,
       preco: Number(b.carvao.preco_unit),
       pisCredito: b.carvao.pis_credito == null ? undefined : Number(b.carvao.pis_credito),

@@ -19,6 +19,11 @@ import {
   minerioRowToInput,
   type LaminaFormPayload,
 } from '@/lib/actions/lamina-mapper';
+import {
+  CARGAS_PADRAO,
+  PESO_POR_CARGA_PADRAO_KG,
+  calcularMdc,
+} from '@/lib/laminas/mdc-calc';
 import type { LaminaResultado } from '@/lib/calculation/types';
 import type { Database } from '@/lib/supabase/types';
 
@@ -93,7 +98,12 @@ export function OtimizadorPanel(props: Props) {
   const [custoMax, setCustoMax] = useState('');
 
   // Parâmetros de operação (defaults do bootstrap)
-  const [carvaoMdc, setCarvaoMdc] = useState(23.31);
+  const carvaoDens = Number(carvao.densidade_kg_m3 ?? 220);
+  const [carvaoCargas, setCarvaoCargas] = useState<number>(CARGAS_PADRAO);
+  const [carvaoPesoCarga, setCarvaoPesoCarga] = useState<number>(
+    PESO_POR_CARGA_PADRAO_KG,
+  );
+  const carvaoMdc = calcularMdc(carvaoCargas, carvaoPesoCarga, carvaoDens);
   const [coqueKg, setCoqueKg] = useState(1280);
   const [bauxitaKg, setBauxitaKg] = useState(192.5);
   const [dolomitaKg, setDolomitaKg] = useState(0);
@@ -137,7 +147,9 @@ export function OtimizadorPanel(props: Props) {
         ? [{ minerio_id: mineriosSelecionados[0]!.id, pct: 100 }]
         : [],
       carvao_mdc: carvaoMdc,
-      carvao_densidade: Number(carvao.densidade_kg_m3 ?? 220),
+      carvao_densidade: carvaoDens,
+      carvao_cargas_por_corrida: carvaoCargas,
+      carvao_peso_por_carga_kg: carvaoPesoCarga,
       coque_kg: coqueKg,
       calcario_kg: calcarioMode === 'manual' ? calcarioKg : 0,
       calcario_manual: calcarioMode === 'manual',
@@ -216,6 +228,8 @@ export function OtimizadorPanel(props: Props) {
       blend: JSON.stringify(blend),
       cliente_id: clienteId,
       carvao_mdc: String(carvaoMdc),
+      carvao_cargas_por_corrida: String(carvaoCargas),
+      carvao_peso_por_carga_kg: String(carvaoPesoCarga),
       coque_kg: String(coqueKg),
       bauxita_kg: String(bauxitaKg),
       dolomita_kg: String(dolomitaKg),
@@ -334,11 +348,48 @@ export function OtimizadorPanel(props: Props) {
             <summary className="cursor-pointer text-muted-foreground">
               Parâmetros de operação (defaults)
             </summary>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="space-y-1">
-                <Label htmlFor="carvaoMdc" className="text-xs">Carvão (MDC)</Label>
-                <Input id="carvaoMdc" type="number" step="0.01" value={carvaoMdc} onChange={(e) => setCarvaoMdc(Number(e.target.value))} />
+            <div className="mt-3 space-y-3 rounded-md border p-3">
+              <div className="text-xs font-semibold">Carvão</div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <Label htmlFor="carvaoCargas" className="text-xs">Cargas/corrida</Label>
+                  <Input
+                    id="carvaoCargas"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={carvaoCargas}
+                    onChange={(e) => setCarvaoCargas(Number(e.target.value))}
+                    data-testid="opt-carvao-cargas"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="carvaoPesoCarga" className="text-xs">Peso/carga (kg)</Label>
+                  <Input
+                    id="carvaoPesoCarga"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={carvaoPesoCarga}
+                    onChange={(e) => setCarvaoPesoCarga(Number(e.target.value))}
+                    data-testid="opt-carvao-peso"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">MDC calculado</Label>
+                  <div
+                    className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-semibold tabular-nums"
+                    data-testid="opt-carvao-mdc"
+                  >
+                    {carvaoMdc.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </div>
+                </div>
               </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="space-y-1">
                 <Label htmlFor="coqueKg" className="text-xs">Coque (kg)</Label>
                 <Input id="coqueKg" type="number" step="0.01" value={coqueKg} onChange={(e) => setCoqueKg(Number(e.target.value))} />

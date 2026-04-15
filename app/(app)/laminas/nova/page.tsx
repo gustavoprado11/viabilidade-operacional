@@ -16,6 +16,8 @@ type Props = {
     blend?: string;
     cliente_id?: string;
     carvao_mdc?: string;
+    carvao_cargas_por_corrida?: string;
+    carvao_peso_por_carga_kg?: string;
     coque_kg?: string;
     bauxita_kg?: string;
     dolomita_kg?: string;
@@ -116,6 +118,8 @@ export default async function NovaLaminaPage({ searchParams }: Props) {
         cliente_id: sp.cliente_id ?? clientes[0]?.id ?? '',
         blend: blendFromUrl,
         carvao_mdc: numFromParam(sp.carvao_mdc),
+        carvao_cargas_por_corrida: numFromParam(sp.carvao_cargas_por_corrida),
+        carvao_peso_por_carga_kg: numFromParam(sp.carvao_peso_por_carga_kg),
         coque_kg: numFromParam(sp.coque_kg),
         bauxita_kg: numFromParam(sp.bauxita_kg),
         dolomita_kg: numFromParam(sp.dolomita_kg),

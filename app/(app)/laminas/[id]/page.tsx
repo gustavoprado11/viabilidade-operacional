@@ -155,6 +155,14 @@ export default async function LaminaDetailPage({ params, searchParams }: Props) 
             blend,
             carvao_mdc: Number(lamina.carvao_mdc),
             carvao_densidade: Number(lamina.carvao_densidade),
+            carvao_cargas_por_corrida:
+              lamina.carvao_cargas_por_corrida == null
+                ? null
+                : Number(lamina.carvao_cargas_por_corrida),
+            carvao_peso_por_carga_kg:
+              lamina.carvao_peso_por_carga_kg == null
+                ? null
+                : Number(lamina.carvao_peso_por_carga_kg),
             coque_kg: Number(lamina.coque_kg),
             calcario_kg: Number(lamina.calcario_kg),
             bauxita_kg: Number(lamina.bauxita_kg),
