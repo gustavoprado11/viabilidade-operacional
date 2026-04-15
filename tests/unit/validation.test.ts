@@ -18,7 +18,7 @@ const escoriaOK: EscoriaResult = {
   b4: 0.7,
   al2o3Pct: 14,
   mgoAl2o3: 0.3,
-  calcarioNecessario: 0.5,
+  calcarioNecessario: 0.5, contribuicoes: { sio2: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, al2o3: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, cao: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, mgo: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 } },
 };
 
 const gusaOK: ContaminantesGusa = {

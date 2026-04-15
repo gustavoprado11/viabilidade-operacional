@@ -112,6 +112,7 @@ export const laminaInputSchema = z
     }),
     cliente: clienteSpecSchema,
     parametros: parametrosSchema,
+    calcarioManual: z.boolean().optional(),
   })
   .refine(
     (input) => {

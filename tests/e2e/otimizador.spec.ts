@@ -45,6 +45,28 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 );
 
 (E2E_READY ? test : test.skip)(
+  'form de fundentes controla resultado do otimizador',
+  async ({ page }) => {
+    test.setTimeout(60_000);
+    await loginE2E(page);
+    await page.goto('/otimizador');
+
+    // Abre a seção de fundentes e seta dolomita = 5000
+    await page.locator('summary', { hasText: /Parâmetros de operação/ }).click();
+    await page.getByTestId('opt-dolomita').fill('5000');
+
+    // Al₂O₃ máx default = 25 (exploração inicial)
+    await expect(page.getByLabel('Al₂O₃ esc máx (%)')).toHaveValue('25');
+
+    await page.getByTestId('otimizar').click();
+    await Promise.race([
+      page.getByTestId('otimizacao-stats').waitFor({ timeout: 30_000 }),
+      page.getByTestId('sem-resultados').waitFor({ timeout: 30_000 }),
+    ]);
+  },
+);
+
+(E2E_READY ? test : test.skip)(
   'restrições impossíveis mostram "nenhuma combinação"',
   async ({ page }) => {
     await loginE2E(page);

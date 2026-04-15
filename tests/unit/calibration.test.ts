@@ -30,7 +30,7 @@ const previstoBase: LaminaResultado = {
     b4: 0.7,
     al2o3Pct: 13.3,
     mgoAl2o3: 0.33,
-    calcarioNecessario: 1,
+    calcarioNecessario: 1, contribuicoes: { sio2: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, al2o3: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, cao: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 }, mgo: { minerio: 0, bauxita: 0, calcario: 0, dolomita: 0 } },
   },
   gusa: { p: 0.1, si: 0.5, mn: 0.15, s: 0.025, c: 4.2 },
   financeiro: {

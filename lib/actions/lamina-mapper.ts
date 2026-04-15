@@ -103,6 +103,7 @@ export type LaminaFormPayload = {
   carvao_densidade: number;
   coque_kg: number;
   calcario_kg: number;
+  calcario_manual?: boolean;
   bauxita_kg: number;
   dolomita_kg: number;
   quebras: Quebras;
@@ -169,5 +170,6 @@ export function buildLaminaInput(
     },
     cliente: clienteRowToSpec(b.cliente),
     parametros: parametrosRowToInput(b.parametros),
+    calcarioManual: payload.calcario_manual ?? false,
   };
 }

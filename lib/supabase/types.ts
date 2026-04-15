@@ -363,6 +363,7 @@ export type Database = {
           bauxita_kg: number
           blend: Json
           calcario_kg: number
+          calcario_manual: boolean
           carvao_densidade: number
           carvao_mdc: number
           classificacao: string
@@ -393,6 +394,7 @@ export type Database = {
           bauxita_kg: number
           blend: Json
           calcario_kg: number
+          calcario_manual?: boolean
           carvao_densidade: number
           carvao_mdc: number
           classificacao: string
@@ -423,6 +425,7 @@ export type Database = {
           bauxita_kg?: number
           blend?: Json
           calcario_kg?: number
+          calcario_manual?: boolean
           carvao_densidade?: number
           carvao_mdc?: number
           classificacao?: string

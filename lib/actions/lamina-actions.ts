@@ -29,6 +29,10 @@ const payloadSchema = z
     carvao_densidade: z.coerce.number().positive(),
     coque_kg: z.coerce.number().nonnegative(),
     calcario_kg: z.coerce.number().nonnegative(),
+    calcario_manual: z
+      .union([z.literal('true'), z.literal('false'), z.literal('on')])
+      .optional()
+      .transform((v) => v === 'true' || v === 'on'),
     bauxita_kg: z.coerce.number().nonnegative(),
     dolomita_kg: z.coerce.number().nonnegative(),
     quebras: z.object({
@@ -206,6 +210,7 @@ export async function criarSimulacaoAction(
       carvao_densidade: parsed.data.carvao_densidade,
       coque_kg: parsed.data.coque_kg,
       calcario_kg: parsed.data.calcario_kg,
+      calcario_manual: parsed.data.calcario_manual,
       bauxita_kg: parsed.data.bauxita_kg,
       dolomita_kg: parsed.data.dolomita_kg,
       quebras: parsed.data.quebras,
@@ -286,6 +291,7 @@ export async function atualizarSimulacaoAction(
       carvao_densidade: parsed.data.carvao_densidade,
       coque_kg: parsed.data.coque_kg,
       calcario_kg: parsed.data.calcario_kg,
+      calcario_manual: parsed.data.calcario_manual,
       bauxita_kg: parsed.data.bauxita_kg,
       dolomita_kg: parsed.data.dolomita_kg,
       quebras: parsed.data.quebras,

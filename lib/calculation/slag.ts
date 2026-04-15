@@ -82,13 +82,15 @@ export function calcularEscoria(
   const sio2Parcial = sio2MinTon + sio2Baux + sio2Dolom;
   const caoParcial = caoMinTon + caoBaux + caoDolom;
 
-  // Calcário calculado para atingir B2 alvo
-  const calcarioTon = calcularCalcarioParaB2(
-    sio2Parcial,
-    caoParcial,
-    parametros.b2Alvo,
-    fundentes.calcario.dados,
-  );
+  // Calcário: se manual, usa o input direto; senão recalcula para B2 alvo.
+  const calcarioTon = input.calcarioManual
+    ? fundentes.calcario.kg / 1000
+    : calcularCalcarioParaB2(
+        sio2Parcial,
+        caoParcial,
+        parametros.b2Alvo,
+        fundentes.calcario.dados,
+      );
 
   const sio2Calc = (calcarioTon * fundentes.calcario.dados.sio2) / 100;
   const al2o3Calc = (calcarioTon * fundentes.calcario.dados.al2o3) / 100;
@@ -122,5 +124,11 @@ export function calcularEscoria(
     al2o3Pct,
     mgoAl2o3,
     calcarioNecessario: calcarioTon,
+    contribuicoes: {
+      sio2: { minerio: sio2MinTon, bauxita: sio2Baux, calcario: sio2Calc, dolomita: sio2Dolom },
+      al2o3: { minerio: al2o3MinTon, bauxita: al2o3Baux, calcario: al2o3Calc, dolomita: al2o3Dolom },
+      cao: { minerio: caoMinTon, bauxita: caoBaux, calcario: caoCalc, dolomita: caoDolom },
+      mgo: { minerio: mgoMinTon, bauxita: mgoBaux, calcario: mgoCalc, dolomita: mgoDolom },
+    },
   };
 }

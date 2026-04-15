@@ -6,7 +6,7 @@ import {
   calcularEscoria,
 } from '@/lib/calculation/slag';
 import { calcularProducao } from '@/lib/calculation/yield';
-import { calcario } from '@/tests/fixtures/minerios';
+import { bauxita, calcario, dolomita } from '@/tests/fixtures/minerios';
 import {
   blend100Trindade,
   blend50Serra50Trindade,
@@ -150,5 +150,77 @@ describe('calcularEscoria', () => {
     const p = calcularProducao(input, bq.fe);
     const e = calcularEscoria(input, p);
     expect(e.b4).toBeCloseTo((e.caoTon + e.mgoTon) / (e.sio2Ton + e.al2o3Ton), 6);
+  });
+
+  it('calcarioManual=true usa valor do input (em kg/1000) — ignora B2 alvo', () => {
+    const input = makeInput(blend50Serra50Trindade, {
+      fundentes: {
+        calcario: { kg: 1234, dados: calcario },
+        bauxita: { kg: 192.5, dados: bauxita },
+        dolomita: { kg: 0, dados: dolomita },
+      },
+      calcarioManual: true,
+    });
+    const bq = calcularBlendQuimica(input.blend);
+    const p = calcularProducao(input, bq.fe);
+    const e = calcularEscoria(input, p);
+    expect(e.calcarioNecessario).toBeCloseTo(1234 / 1000, 6);
+    // B2 alvo muito provavelmente não bate com 1234kg de calcário
+    expect(Math.abs(e.b2 - input.parametros.b2Alvo)).toBeGreaterThan(0.001);
+  });
+
+  it('calcarioManual=false (default) recalcula para B2 alvo, ignorando input', () => {
+    const input = makeInput(blend50Serra50Trindade, {
+      fundentes: {
+        calcario: { kg: 99999, dados: calcario }, // valor absurdo, deve ser ignorado
+        bauxita: { kg: 192.5, dados: bauxita },
+        dolomita: { kg: 0, dados: dolomita },
+      },
+    });
+    const bq = calcularBlendQuimica(input.blend);
+    const p = calcularProducao(input, bq.fe);
+    const e = calcularEscoria(input, p);
+    expect(e.b2).toBeCloseTo(input.parametros.b2Alvo, 4);
+  });
+
+  it('contribuicoes: cada óxido soma minerio+bauxita+calcario+dolomita = Ton total', () => {
+    const input = makeInput(blend50Serra50Trindade);
+    const bq = calcularBlendQuimica(input.blend);
+    const p = calcularProducao(input, bq.fe);
+    const e = calcularEscoria(input, p);
+    for (const [ox, total] of [
+      ['sio2', e.sio2Ton],
+      ['al2o3', e.al2o3Ton],
+      ['cao', e.caoTon],
+      ['mgo', e.mgoTon],
+    ] as const) {
+      const c = e.contribuicoes[ox];
+      expect(c.minerio + c.bauxita + c.calcario + c.dolomita).toBeCloseTo(total, 6);
+    }
+  });
+
+  it('contribuicoes zeradas quando input de fundentes é 0 e minério sem óxido', () => {
+    const zero = {
+      id: 'z', nome: 'z', preco: 0, fe: 60,
+      sio2: 0, al2o3: 0, p: 0, mn: 0, cao: 0, mgo: 0, ppc: 0,
+      pisCredito: 0, icmsCredito: 0,
+    };
+    const input = makeInput([{ minerio: zero, pct: 100 }], {
+      fundentes: {
+        calcario: { kg: 0, dados: calcario },
+        bauxita: { kg: 0, dados: bauxita },
+        dolomita: { kg: 0, dados: dolomita },
+      },
+    });
+    const bq = calcularBlendQuimica(input.blend);
+    const p = calcularProducao(input, bq.fe);
+    const e = calcularEscoria(input, p);
+    for (const ox of ['sio2', 'al2o3', 'cao', 'mgo'] as const) {
+      const c = e.contribuicoes[ox];
+      expect(c.minerio).toBe(0);
+      expect(c.bauxita).toBe(0);
+      expect(c.calcario).toBe(0);
+      expect(c.dolomita).toBe(0);
+    }
   });
 });

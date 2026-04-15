@@ -88,6 +88,41 @@ export function ResultadoLamina({
             <Row label="Volume escória" value={`${num(esc.volumeTon)} ton`} />
             <Row label="kg escória/ton gusa" value={num(esc.volumePorTonGusa, 1)} />
             <Row label="Calcário necessário" value={`${num(esc.calcarioNecessario)} ton`} />
+
+            <details className="mt-3 rounded-md border bg-muted/30 p-2 text-xs">
+              <summary className="cursor-pointer font-medium">Contribuições (kg/corrida)</summary>
+              <table className="mt-2 w-full tabular-nums" data-testid="contribuicoes-table">
+                <thead>
+                  <tr className="text-left text-muted-foreground">
+                    <th className="py-1">Óxido</th>
+                    <th>Minério</th>
+                    <th>Bauxita</th>
+                    <th>Calcário</th>
+                    <th>Dolomita</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(['sio2', 'al2o3', 'cao', 'mgo'] as const).map((ox) => {
+                    const c = esc.contribuicoes[ox];
+                    const label =
+                      ox === 'sio2' ? 'SiO₂' : ox === 'al2o3' ? 'Al₂O₃' : ox === 'cao' ? 'CaO' : 'MgO';
+                    const toKg = (t: number) => (t * 1000).toFixed(1);
+                    const total = c.minerio + c.bauxita + c.calcario + c.dolomita;
+                    return (
+                      <tr key={ox} className="border-t border-muted">
+                        <td className="py-1">{label}</td>
+                        <td>{toKg(c.minerio)}</td>
+                        <td>{toKg(c.bauxita)}</td>
+                        <td>{toKg(c.calcario)}</td>
+                        <td>{toKg(c.dolomita)}</td>
+                        <td className="font-medium">{toKg(total)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </details>
           </CardContent>
         </Card>
 

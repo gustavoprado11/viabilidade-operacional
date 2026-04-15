@@ -107,6 +107,9 @@ export function SimuladorForm(props: Props) {
   );
   const [coqueKg, setCoqueKg] = useState(initial?.coque_kg ?? 1280);
   const [calcarioKg, setCalcarioKg] = useState(initial?.calcario_kg ?? 0);
+  const [calcarioManual, setCalcarioManual] = useState(
+    initial?.calcario_manual ?? false,
+  );
   const [bauxitaKg, setBauxitaKg] = useState(initial?.bauxita_kg ?? 192.5);
   const [dolomitaKg, setDolomitaKg] = useState(initial?.dolomita_kg ?? 0);
   const [quebras, setQuebras] = useState(initial?.quebras ?? QUEBRAS_DEFAULT);
@@ -140,6 +143,7 @@ export function SimuladorForm(props: Props) {
       carvao_densidade: Number(carvaoDens),
       coque_kg: Number(coqueKg),
       calcario_kg: Number(calcarioKg),
+      calcario_manual: calcarioManual,
       bauxita_kg: Number(bauxitaKg),
       dolomita_kg: Number(dolomitaKg),
       quebras: {
@@ -157,8 +161,8 @@ export function SimuladorForm(props: Props) {
     }),
     [
       nome, tipo, clienteId, blend, carvaoMdc, carvaoDens, coqueKg, calcarioKg,
-      bauxitaKg, dolomitaKg, quebras, estabilidade, sucataKg, sucataPreco,
-      sucataDestino, corridaTs, observacoes,
+      calcarioManual, bauxitaKg, dolomitaKg, quebras, estabilidade, sucataKg,
+      sucataPreco, sucataDestino, corridaTs, observacoes,
     ],
   );
 
@@ -384,30 +388,83 @@ export function SimuladorForm(props: Props) {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="carvao_mdc">Carvão (MDC/corrida)</Label>
-              <Input id="carvao_mdc" name="carvao_mdc" type="number" step="0.01" value={carvaoMdc} onChange={(e) => setCarvaoMdc(Number(e.target.value))} />
+              <Label htmlFor="carvao_mdc" className="flex items-center gap-2">
+                Carvão (MDC/corrida)
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+                  💰 afeta custo
+                </span>
+              </Label>
+              <Input
+                id="carvao_mdc" name="carvao_mdc" type="number" step="0.01"
+                value={carvaoMdc} onChange={(e) => setCarvaoMdc(Number(e.target.value))}
+                title="Afeta custo operacional. Cinzas do carvão vegetal não entram no balanço da escória (simplificação do modelo — ver TODO v1.1)."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="carvao_densidade">Densidade carvão (kg/m³)</Label>
               <Input id="carvao_densidade" name="carvao_densidade" type="number" step="0.01" value={carvaoDens} onChange={(e) => setCarvaoDens(Number(e.target.value))} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="coque_kg">Coque (kg/corrida)</Label>
-              <Input id="coque_kg" name="coque_kg" type="number" step="0.01" value={coqueKg} onChange={(e) => setCoqueKg(Number(e.target.value))} />
+              <Label htmlFor="coque_kg" className="flex items-center gap-2">
+                Coque (kg/corrida)
+                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+                  💰 afeta custo
+                </span>
+              </Label>
+              <Input
+                id="coque_kg" name="coque_kg" type="number" step="0.01"
+                value={coqueKg} onChange={(e) => setCoqueKg(Number(e.target.value))}
+                title="Afeta custo operacional. Cinzas não entram no balanço da escória (simplificação do modelo)."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="bauxita_kg">Bauxita (kg/corrida)</Label>
-              <Input id="bauxita_kg" name="bauxita_kg" type="number" step="0.01" value={bauxitaKg} onChange={(e) => setBauxitaKg(Number(e.target.value))} />
+              <Input
+                id="bauxita_kg" name="bauxita_kg" type="number" step="0.01"
+                value={bauxitaKg} onChange={(e) => setBauxitaKg(Number(e.target.value))}
+                title="Aumenta Al₂O₃ na escória. Usada para corrigir composição quando minério tem pouca alumina."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dolomita_kg">Dolomita (kg/corrida)</Label>
-              <Input id="dolomita_kg" name="dolomita_kg" type="number" step="0.01" value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))} />
+              <Input
+                id="dolomita_kg" name="dolomita_kg" type="number" step="0.01"
+                value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))}
+                title="Aumenta MgO na escória, melhorando fluidez. Corrige relação MgO/Al₂O₃."
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="calcario_kg">Calcário (kg/corrida) — informativo</Label>
-              <Input id="calcario_kg" name="calcario_kg" type="number" step="0.01" value={calcarioKg} onChange={(e) => setCalcarioKg(Number(e.target.value))} />
+            <div className="space-y-2 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="calcario_kg">Calcário (kg/corrida)</Label>
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    name="calcario_manual"
+                    checked={calcarioManual}
+                    onChange={(e) => setCalcarioManual(e.target.checked)}
+                    data-testid="calcario-manual-toggle"
+                  />
+                  <span>Modo manual</span>
+                </label>
+              </div>
+              <input type="hidden" name="calcario_kg" value={calcarioKg} />
+              <Input
+                id="calcario_kg" type="number" step="0.01"
+                value={calcarioKg}
+                onChange={(e) => setCalcarioKg(Number(e.target.value))}
+                disabled={!calcarioManual}
+                title={
+                  calcarioManual
+                    ? 'Modo manual: valor digitado é usado diretamente no cálculo de escória.'
+                    : 'Modo automático: recalculado a cada mudança para atingir B2 alvo.'
+                }
+              />
               <p className="text-xs text-muted-foreground">
-                O motor recalcula o calcário para atingir B2 alvo.
+                {calcarioManual
+                  ? '⚠ Valor informado é usado literalmente. B2 pode divergir do alvo.'
+                  : preview?.escoria.calcarioNecessario != null
+                  ? `Calculado automaticamente para atingir B2 alvo: ${(preview.escoria.calcarioNecessario * 1000).toFixed(2)} kg.`
+                  : 'Calculado automaticamente pelo motor para atingir B2 alvo.'}
               </p>
             </div>
           </CardContent>

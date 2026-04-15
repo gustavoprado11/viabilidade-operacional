@@ -102,6 +102,11 @@ export type LaminaInput = Readonly<{
   sucata: Readonly<{ kg: number; precoTon: number; destino: SucataDestino }>;
   cliente: ClienteSpec;
   parametros: ParametrosForno;
+  /**
+   * Se true, usa `fundentes.calcario.kg` literalmente (em kg). Se falso ou
+   * omitido, o motor recalcula para atingir B2 alvo (comportamento original).
+   */
+  calcarioManual?: boolean;
 }>;
 
 export type BlendQuimica = Readonly<{
@@ -126,6 +131,13 @@ export type ProducaoResult = Readonly<{
   producaoTotal: number;
 }>;
 
+export type ContribuicoesEscoria = Readonly<{
+  sio2: Readonly<{ minerio: number; bauxita: number; calcario: number; dolomita: number }>;
+  al2o3: Readonly<{ minerio: number; bauxita: number; calcario: number; dolomita: number }>;
+  cao: Readonly<{ minerio: number; bauxita: number; calcario: number; dolomita: number }>;
+  mgo: Readonly<{ minerio: number; bauxita: number; calcario: number; dolomita: number }>;
+}>;
+
 export type EscoriaResult = Readonly<{
   sio2Ton: number;
   al2o3Ton: number;
@@ -138,6 +150,7 @@ export type EscoriaResult = Readonly<{
   al2o3Pct: number;
   mgoAl2o3: number;
   calcarioNecessario: number;
+  contribuicoes: ContribuicoesEscoria;
 }>;
 
 export type ContaminantesGusa = Readonly<{

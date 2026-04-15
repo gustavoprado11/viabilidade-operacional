@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
+import { simulateLamina } from '@/lib/calculation/index';
 import {
   generateCombinations,
   otimizarBlend,
@@ -110,6 +111,52 @@ describe('otimizarBlend', () => {
     );
     for (const r of top)
       expect(r.financeiro.custoPorTonGusa).toBeLessThanOrEqual(2500);
+  });
+
+  it('otimizador propaga dolomita custom via baseInput (simulação direta reflete MgO/Al₂O₃ maior)', () => {
+    // Não usa otimizarBlend aqui porque ele filtra inviáveis; testa direto
+    // a forma como otimizarBlend spread-a baseInput em cada iteração.
+    const base = makeInput([{ minerio: serra, pct: 50 }, { minerio: trindade, pct: 50 }]);
+    const { blend, ...rest } = base;
+    const simSem = simulateLamina({ ...rest, blend });
+    const simCom = simulateLamina({
+      ...rest,
+      blend,
+      fundentes: {
+        ...rest.fundentes,
+        dolomita: { ...rest.fundentes.dolomita, kg: 5000 },
+      },
+    });
+    expect(simCom.escoria.mgoAl2o3).toBeGreaterThan(simSem.escoria.mgoAl2o3);
+    // E otimizarBlend não deve lançar ao receber baseInput com dolomita custom.
+    expect(() =>
+      otimizarBlend(
+        [serra, trindade, corumba],
+        {},
+        {
+          ...rest,
+          fundentes: {
+            ...rest.fundentes,
+            dolomita: { ...rest.fundentes.dolomita, kg: 5000 },
+          },
+        },
+        10,
+        5,
+      ),
+    ).not.toThrow();
+  });
+
+  it('dolomita alta reduz Al₂O₃% da escória via diluição', () => {
+    const base = makeInput([{ minerio: serra, pct: 50 }, { minerio: trindade, pct: 50 }]);
+    const simSem = simulateLamina(base);
+    const simCom = simulateLamina({
+      ...base,
+      fundentes: {
+        ...base.fundentes,
+        dolomita: { ...base.fundentes.dolomita, kg: 10000 },
+      },
+    });
+    expect(simCom.escoria.al2o3Pct).toBeLessThan(simSem.escoria.al2o3Pct);
   });
 
   it('lista vazia retorna vazio', () => {

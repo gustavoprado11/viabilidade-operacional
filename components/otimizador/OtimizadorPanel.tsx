@@ -48,6 +48,26 @@ type Props = {
 const QUEBRAS_DEFAULT = { minerio: 0.1, carvao: 0.1, coque: 0.05, fundentes: 0.05 };
 const STEP_OPTIONS = [1, 2, 5, 10, 20, 25];
 
+function buildEmptyMsg(
+  al2o3MaxStr: string,
+  custoMaxStr: string,
+  dolomitaKg: number,
+): string {
+  const al2o3 = al2o3MaxStr ? Number(al2o3MaxStr) : NaN;
+  const custo = custoMaxStr ? Number(custoMaxStr) : NaN;
+  if (Number.isFinite(al2o3) && al2o3 < 20) {
+    const dolomitaHint =
+      dolomitaKg < 5000
+        ? ' (2) aumentar dolomita para 5000-10000 kg/corrida (aumenta MgO, pode diluir Al₂O₃%);'
+        : '';
+    return `Nenhum blend atende Al₂O₃ escória < ${al2o3}%. Com minérios itabiríticos e sem cinzas no modelo, esse limite é muito estrito. Sugestões: (1) aumentar para 22-25%;${dolomitaHint} (3) reduzir bauxita.`;
+  }
+  if (Number.isFinite(custo) && custo < 2500) {
+    return `Custo/ton máximo (R$ ${custo}) pode estar restritivo. Média de referência: R$ 2.600-2.800/ton.`;
+  }
+  return 'Nenhuma combinação atende às restrições. Relaxe filtros ou altere o step.';
+}
+
 export function OtimizadorPanel(props: Props) {
   const {
     minerios,
@@ -69,14 +89,16 @@ export function OtimizadorPanel(props: Props) {
   const [step, setStep] = useState(5);
   const [feMin, setFeMin] = useState('');
   const [feMax, setFeMax] = useState('');
-  const [al2o3Max, setAl2o3Max] = useState('17');
+  const [al2o3Max, setAl2o3Max] = useState('25');
   const [custoMax, setCustoMax] = useState('');
 
   // Parâmetros de operação (defaults do bootstrap)
-  const [carvaoMdc, setCarvaoMdc] = useState(23.3);
+  const [carvaoMdc, setCarvaoMdc] = useState(23.31);
   const [coqueKg, setCoqueKg] = useState(1280);
   const [bauxitaKg, setBauxitaKg] = useState(192.5);
   const [dolomitaKg, setDolomitaKg] = useState(0);
+  const [calcarioMode, setCalcarioMode] = useState<'auto' | 'manual'>('auto');
+  const [calcarioKg, setCalcarioKg] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -117,7 +139,8 @@ export function OtimizadorPanel(props: Props) {
       carvao_mdc: carvaoMdc,
       carvao_densidade: Number(carvao.densidade_kg_m3 ?? 220),
       coque_kg: coqueKg,
-      calcario_kg: 0,
+      calcario_kg: calcarioMode === 'manual' ? calcarioKg : 0,
+      calcario_manual: calcarioMode === 'manual',
       bauxita_kg: bauxitaKg,
       dolomita_kg: dolomitaKg,
       quebras: QUEBRAS_DEFAULT,
@@ -297,6 +320,9 @@ export function OtimizadorPanel(props: Props) {
             <div className="space-y-1">
               <Label htmlFor="al2o3Max" className="text-xs">Al₂O₃ esc máx (%)</Label>
               <Input id="al2o3Max" type="number" step="0.01" value={al2o3Max} onChange={(e) => setAl2o3Max(e.target.value)} />
+              <p className="text-[10px] leading-tight text-muted-foreground">
+                17% é o alvo técnico, mas modelo atual sem cinzas de carvão/coque tende a superestimar Al₂O₃ escória. Use 25% para exploração inicial; reduza para 17% se quiser regime estrito.
+              </p>
             </div>
             <div className="space-y-1">
               <Label htmlFor="custoMax" className="text-xs">Custo/ton máx (R$)</Label>
@@ -318,12 +344,42 @@ export function OtimizadorPanel(props: Props) {
                 <Input id="coqueKg" type="number" step="0.01" value={coqueKg} onChange={(e) => setCoqueKg(Number(e.target.value))} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="bauxitaKg" className="text-xs">Bauxita (kg)</Label>
+                <Label htmlFor="bauxitaKg" className="text-xs">Bauxita (kg/corrida)</Label>
                 <Input id="bauxitaKg" type="number" step="0.01" value={bauxitaKg} onChange={(e) => setBauxitaKg(Number(e.target.value))} />
+                <p className="text-[10px] leading-tight text-muted-foreground">
+                  Quantidade fixa em todas combinações testadas.
+                </p>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="dolomitaKg" className="text-xs">Dolomita (kg)</Label>
-                <Input id="dolomitaKg" type="number" step="0.01" value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))} />
+                <Label htmlFor="dolomitaKg" className="text-xs">Dolomita (kg/corrida)</Label>
+                <Input id="dolomitaKg" type="number" step="0.01" value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))} data-testid="opt-dolomita" />
+                <p className="text-[10px] leading-tight text-muted-foreground">
+                  Zero = sem dolomita. Valores &gt; 0 aumentam MgO/Al₂O₃ da escória, podendo reduzir Al₂O₃% via diluição.
+                </p>
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label htmlFor="calcarioMode" className="text-xs">
+                  Calcário
+                </Label>
+                <div className="flex items-center gap-2">
+                  <select
+                    id="calcarioMode"
+                    value={calcarioMode}
+                    onChange={(e) => setCalcarioMode(e.target.value as 'auto' | 'manual')}
+                    className="flex h-10 w-32 rounded-md border border-input bg-background px-2 text-sm"
+                  >
+                    <option value="auto">automático</option>
+                    <option value="manual">manual</option>
+                  </select>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={calcarioKg}
+                    onChange={(e) => setCalcarioKg(Number(e.target.value))}
+                    disabled={calcarioMode === 'auto'}
+                    placeholder={calcarioMode === 'auto' ? 'recalculado para B2 alvo' : 'kg'}
+                  />
+                </div>
               </div>
             </div>
           </details>
@@ -355,9 +411,7 @@ export function OtimizadorPanel(props: Props) {
       {resultados !== null && !loading ? (
         resultados.length === 0 ? (
           <Alert data-testid="sem-resultados">
-            <AlertDescription>
-              Nenhuma combinação atende às restrições. Relaxe filtros ou altere o step.
-            </AlertDescription>
+            <AlertDescription>{buildEmptyMsg(al2o3Max, custoMax, dolomitaKg)}</AlertDescription>
           </Alert>
         ) : (
           <>
