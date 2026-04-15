@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { EstimativaDiariaCard } from '@/components/lamina/EstimativaDiariaCard';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -9,6 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { Classificacao, LaminaResultado } from '@/lib/calculation/types';
+import {
+  calcularEstimativaDiaria,
+  type SimulacaoResumida,
+} from '@/lib/laminas/estimativa-diaria';
+import { getParametrosAtivos } from '@/lib/queries/parametros';
 import { listSimulacoes, type SimulacaoTipo, type SimulacaoClassificacao } from '@/lib/queries/simulacoes';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +31,23 @@ type Search = Promise<{ tipo?: SimulacaoTipo; classificacao?: SimulacaoClassific
 
 export default async function LaminasPage({ searchParams }: { searchParams: Search }) {
   const sp = await searchParams;
-  const laminas = await listSimulacoes({ tipo: sp.tipo, classificacao: sp.classificacao });
+  const [laminas, parametros] = await Promise.all([
+    listSimulacoes({ tipo: sp.tipo, classificacao: sp.classificacao }),
+    getParametrosAtivos(),
+  ]);
+
+  const corridasPorDia = parametros?.corridas_por_dia ?? 16;
+  const resumos: SimulacaoResumida[] = laminas.map((l) => {
+    const r = l.resultado as unknown as LaminaResultado;
+    return {
+      gusaCorrida: r.producao.gusaVazado,
+      custoPorTonGusa: r.financeiro.custoPorTonGusa,
+      margemPorTon: r.financeiro.margemPorTon,
+      resultadoCorrida: r.financeiro.resultadoCorrida,
+      classificacao: l.classificacao as Classificacao,
+    };
+  });
+  const estimativa = calcularEstimativaDiaria(resumos, corridasPorDia);
 
   const filterPill = (label: string, href: string, active: boolean) => (
     <Link
@@ -54,6 +77,8 @@ export default async function LaminasPage({ searchParams }: { searchParams: Sear
           </Button>
         </div>
       </header>
+
+      <EstimativaDiariaCard estimativa={estimativa} />
 
       <div className="flex flex-wrap gap-2 border-b pb-2 text-sm">
         <span className="text-xs text-muted-foreground">Tipo:</span>
