@@ -349,10 +349,15 @@ export function OtimizadorPanel(props: Props) {
               Parâmetros de operação (defaults)
             </summary>
             <div className="mt-3 space-y-3 rounded-md border p-3">
-              <div className="text-xs font-semibold">Carvão</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold">Carvão vegetal</span>
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  por corrida
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div className="space-y-1">
-                  <Label htmlFor="carvaoCargas" className="text-xs">Cargas/corrida</Label>
+                  <Label htmlFor="carvaoCargas" className="text-xs">Cargas na corrida</Label>
                   <Input
                     id="carvaoCargas"
                     type="number"
@@ -364,7 +369,7 @@ export function OtimizadorPanel(props: Props) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="carvaoPesoCarga" className="text-xs">Peso/carga (kg)</Label>
+                  <Label htmlFor="carvaoPesoCarga" className="text-xs">Peso por carga (kg)</Label>
                   <Input
                     id="carvaoPesoCarga"
                     type="number"
@@ -376,7 +381,7 @@ export function OtimizadorPanel(props: Props) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">MDC calculado</Label>
+                  <Label className="text-xs">MDC/corrida calculado</Label>
                   <div
                     className="flex h-10 items-center rounded-md border bg-muted/40 px-3 text-sm font-semibold tabular-nums"
                     data-testid="opt-carvao-mdc"
@@ -388,21 +393,35 @@ export function OtimizadorPanel(props: Props) {
                   </div>
                 </div>
               </div>
+              <div
+                className="flex items-baseline justify-between border-t pt-2 text-xs"
+                data-testid="opt-carvao-peso-total"
+              >
+                <span className="text-muted-foreground">
+                  Peso total/corrida (kg)
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {(carvaoCargas * carvaoPesoCarga).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="space-y-1">
-                <Label htmlFor="coqueKg" className="text-xs">Coque (kg)</Label>
+                <Label htmlFor="coqueKg" className="text-xs">Coque (total na corrida, kg)</Label>
                 <Input id="coqueKg" type="number" step="0.01" value={coqueKg} onChange={(e) => setCoqueKg(Number(e.target.value))} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="bauxitaKg" className="text-xs">Bauxita (kg/corrida)</Label>
+                <Label htmlFor="bauxitaKg" className="text-xs">Bauxita (total na corrida, kg)</Label>
                 <Input id="bauxitaKg" type="number" step="0.01" value={bauxitaKg} onChange={(e) => setBauxitaKg(Number(e.target.value))} />
                 <p className="text-[10px] leading-tight text-muted-foreground">
                   Quantidade fixa em todas combinações testadas.
                 </p>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="dolomitaKg" className="text-xs">Dolomita (kg/corrida)</Label>
+                <Label htmlFor="dolomitaKg" className="text-xs">Dolomita (total na corrida, kg)</Label>
                 <Input id="dolomitaKg" type="number" step="0.01" value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))} data-testid="opt-dolomita" />
                 <p className="text-[10px] leading-tight text-muted-foreground">
                   Zero = sem dolomita. Valores &gt; 0 aumentam MgO/Al₂O₃ da escória, podendo reduzir Al₂O₃% via diluição.
@@ -410,7 +429,7 @@ export function OtimizadorPanel(props: Props) {
               </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label htmlFor="calcarioMode" className="text-xs">
-                  Calcário
+                  Calcário (total na corrida, kg)
                 </Label>
                 <div className="flex items-center gap-2">
                   <select

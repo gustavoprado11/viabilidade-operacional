@@ -408,7 +408,10 @@ export function SimuladorForm(props: Props) {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2 rounded-md border p-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">Carvão</span>
+                <span className="text-sm font-semibold">Carvão vegetal</span>
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  por corrida
+                </span>
                 <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
                   💰 afeta custo
                 </span>
@@ -416,7 +419,7 @@ export function SimuladorForm(props: Props) {
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="space-y-1">
                   <Label htmlFor="carvao_cargas_por_corrida" className="text-xs">
-                    Cargas por corrida
+                    Cargas na corrida
                   </Label>
                   <Input
                     id="carvao_cargas_por_corrida"
@@ -473,6 +476,20 @@ export function SimuladorForm(props: Props) {
                   })}
                 </span>
               </div>
+              <div
+                className="flex items-baseline justify-between text-sm"
+                data-testid="carvao-peso-total"
+              >
+                <span className="text-muted-foreground">
+                  Peso total/corrida (kg)
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {(carvaoCargas * carvaoPesoCarga).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
               {mostrarAvisoLegado ? (
                 <p className="text-xs text-amber-700">
                   Valor de MDC persistido sem detalhamento — preencha cargas e
@@ -489,7 +506,7 @@ export function SimuladorForm(props: Props) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="coque_kg" className="flex items-center gap-2">
-                Coque (kg/corrida)
+                Coque (total na corrida, kg)
                 <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
                   💰 afeta custo
                 </span>
@@ -501,7 +518,7 @@ export function SimuladorForm(props: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bauxita_kg">Bauxita (kg/corrida)</Label>
+              <Label htmlFor="bauxita_kg">Bauxita (total na corrida, kg)</Label>
               <Input
                 id="bauxita_kg" name="bauxita_kg" type="number" step="0.01"
                 value={bauxitaKg} onChange={(e) => setBauxitaKg(Number(e.target.value))}
@@ -509,7 +526,7 @@ export function SimuladorForm(props: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dolomita_kg">Dolomita (kg/corrida)</Label>
+              <Label htmlFor="dolomita_kg">Dolomita (total na corrida, kg)</Label>
               <Input
                 id="dolomita_kg" name="dolomita_kg" type="number" step="0.01"
                 value={dolomitaKg} onChange={(e) => setDolomitaKg(Number(e.target.value))}
@@ -518,7 +535,7 @@ export function SimuladorForm(props: Props) {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="calcario_kg">Calcário (kg/corrida)</Label>
+                <Label htmlFor="calcario_kg">Calcário (total na corrida, kg)</Label>
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
                   <input
                     type="checkbox"
